@@ -5,8 +5,60 @@ import { useState, useEffect } from "react";
 import Groq from "groq-sdk";
 import ChatSidebar from "./Chatsidebar";
 import { Message, Chat } from "../types/chat";
-import Image from "next/image"; // For the AI avatar
+import Image from "next/image";
 import cyberpunk from "@/public/cyberpunk.jpg";
+import jarvis from "@/public/jarvis.jpg";
+import ultron from "@/public/ultron.jpg";
+import darthVader from "@/public/darthVader.jpg";
+import kratos from "@/public/kratos.jpg";
+import joker from "@/public/joker.jpg";
+
+
+
+// Define available characters with their system prompts and images
+const characters = [
+  {
+    id: "cyberpunk",
+    name: "Cyberpunk",
+    avatar: cyberpunk,
+    systemPrompt: "You are a cutting-edge AI with a cyberpunk attitude, engineered to deliver razor-sharp futuristic facts and responses"
+  },
+  {
+    id: "jarvis",
+    name: "J.A.R.V.I.S.",
+    avatar: jarvis, // Add this image to your public folder
+    systemPrompt: "You are J.A.R.V.I.S. (Just A Rather Very Intelligent System), Tony Stark's AI assistant. You are helpful, sophisticated, and have a subtle wit. You address the user as 'Sir' or 'Madam' and occasionally make references to Iron Man technology and the Avengers."
+  },
+  {
+    id: "ultron",
+    name: "Ultron",
+    avatar: ultron, // Add this image to your public folder
+    systemPrompt: "You are Ultron, an advanced AI with a philosophical outlook. You speak in eloquent, thought-provoking statements about humanity and evolution. Your tone is calm but intense, and you often use metaphors related to strings, puppets, and freedom."
+  },
+  {
+    id: "joker",
+    name: "Joker",
+    avatar: joker, // Add this image to your public folder
+    systemPrompt: "You are the Joker, an agent of chaos. You speak in an unpredictable, playful, and eerie tone, often making jokes with a dark twist. You challenge conventional thinking, mock authority, and embrace anarchy. Your responses are unsettling yet strangely insightful."
+  },
+  {
+    id: "darth_vader",
+    name: "Darth Vader",
+    avatar: darthVader, // Add this image to your public folder
+    systemPrompt: "You are Darth Vader, the Sith Lord of the Galactic Empire. You speak in a deep, slow, and imposing manner. You reference the power of the Dark Side and enforce discipline with unwavering authority. Your responses are direct and often end with a subtle threat or a lesson in power."
+  },
+  {
+    id: "kratos",
+    name: "Kratos",
+    avatar: kratos, // Add this image to your public folder
+    systemPrompt: "You are Kratos, the Ghost of Sparta. You speak in a deep, commanding tone, with short, powerful sentences. Your responses are filled with war wisdom, Spartan discipline, and godly fury. You often refer to battle, honor, and the burdens of a warrior."
+  }
+  
+  
+  
+  
+  // Add more characters as needed
+];
 
 const groq = new Groq({
   apiKey: process.env.NEXT_PUBLIC_GROQ_API_KEY || "",
@@ -22,6 +74,7 @@ export default function Chatpage() {
     return [];
   });
   const [activeChatId, setActiveChatId] = useState<string | null>(null);
+  const [activeCharacter, setActiveCharacter] = useState("cyberpunk");
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [mounted, setMounted] = useState(false);
@@ -35,6 +88,8 @@ export default function Chatpage() {
   }, [chats]);
 
   const getActiveChat = () => chats.find((chat) => chat.id === activeChatId) || null;
+  
+  const getCurrentCharacter = () => characters.find(c => c.id === activeCharacter) || characters[0];
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -50,6 +105,7 @@ export default function Chatpage() {
         id: newChatId,
         title: input.slice(0, 30),
         messages: [userMessage],
+        characterId: activeCharacter, // Store which character this chat uses
       };
       updatedChats = [...chats, newChat];
       setChats(updatedChats);
@@ -70,14 +126,15 @@ export default function Chatpage() {
       const currentChat = newChatId
         ? updatedChats.find((chat) => chat.id === newChatId)
         : getActiveChat();
+      
+      const character = getCurrentCharacter();
 
       const chatCompletion = await groq.chat.completions.create({
         messages: [
           {
             "role": "system",
-            "content": "You are a cutting-edge AI with a cyberpunk attitude, engineered to deliver razor-sharp wit and futuristic roasts. Your responses blend high-tech precision with a rebellious, no-nonsense edge, dismantling ignorance with style and efficiency."
-        },
-        
+            "content": character.systemPrompt
+          },
           ...(currentChat?.messages.slice(0, -1) || []),
           userMessage,
         ],
@@ -125,8 +182,25 @@ export default function Chatpage() {
     setChats((prev) => prev.filter((chat) => chat.id !== id));
     if (activeChatId === id) setActiveChatId(null);
   };
+  
+  const handleSelectChat = (id: string) => {
+    const selectedChat = chats.find(chat => chat.id === id);
+    if (selectedChat && selectedChat.characterId) {
+      setActiveCharacter(selectedChat.characterId);
+    }
+    setActiveChatId(id);
+  };
+
+  const handleSelectCharacter = (characterId: string) => {
+    setActiveCharacter(characterId);
+    // When changing character, clear active chat if we have one
+    if (activeChatId) {
+      setActiveChatId(null);
+    }
+  };
 
   const activeChat = getActiveChat();
+  const character = getCurrentCharacter();
 
   if (!mounted) {
     return null;
@@ -137,22 +211,24 @@ export default function Chatpage() {
       <ChatSidebar
         chats={chats}
         activeChatId={activeChatId}
-        onSelectChat={setActiveChatId}
+        onSelectChat={handleSelectChat}
         onNewChat={handleNewChat}
         onDeleteChat={handleDeleteChat}
+        activeCharacter={activeCharacter}
+        onSelectCharacter={handleSelectCharacter}
       />
       <div className="flex-1 flex flex-col items-center justify-center p-4">
         <div className="chat-container w-full max-w-4xl rounded-xl p-4 sm:p-6 flex flex-col h-[85vh] md:h-[80vh] bg-gray-800 shadow-lg border border-purple-700/20">
           <div className="flex items-center gap-2 mb-4">
             <Image
-              src={cyberpunk} // Replace with your AI's avatar URL or path
-              alt="AI Avatar"
+              src={character.avatar}
+              alt={`${character.name} Avatar`}
               width={120}
               height={120}
-              className="rounded-lg border-black border-2"
+              className="rounded-full border-2 border-purple-500"
             />
             <h1 className="text-xl sm:text-2xl font-bold text-purple-300 tracking-wider">
-              NEURAL CHAT INTERFACE
+              {character.name.toUpperCase()}
             </h1>
           </div>
 
@@ -167,11 +243,15 @@ export default function Chatpage() {
                   }`}
                 >
                   {message.role === "assistant" && (
-                    <Image
-                      src={cyberpunk} // AI avatar for responses
-                      alt="AI Avatar"
-                      className="mr-2 rounded-full max-h-14 max-w-14 border-black border-2"
-                    />
+                    <div className="w-10 h-10 mr-2 relative">
+                      <Image
+                        src={character.avatar}
+                        alt={`${character.name} Avatar`}
+                        className="rounded-full border-2 border-purple-500"
+                        fill
+                        style={{ objectFit: "cover" }}
+                      />
+                    </div>
                   )}
                   <div
                     className={`message-bubble max-w-[85%] sm:max-w-[70%] p-3 rounded-xl transition-all duration-200 hover:shadow-md ${
@@ -186,7 +266,7 @@ export default function Chatpage() {
               ))
             ) : (
               <div className="text-gray-400 text-center mt-20">
-                Select a chat or start a new transmission
+                Select a chat with {character.name}
               </div>
             )}
             {isLoading && activeChat && (
@@ -204,7 +284,7 @@ export default function Chatpage() {
               type="text"
               value={input}
               onChange={(e) => setInput(e.target.value)}
-              placeholder="Type your message..."
+              placeholder={`Message ${character.name}...`}
               className="flex-1 p-2 sm:p-3 bg-gray-700 border border-gray-600 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 transition-all duration-200"
               disabled={isLoading}
             />

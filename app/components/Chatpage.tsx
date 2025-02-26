@@ -1,4 +1,4 @@
-// Chatpage.tsx
+// Main chat interface component
 "use client";
 
 import { useState, useEffect } from "react";
@@ -13,9 +13,7 @@ import darthVader from "@/public/darthVader.jpg";
 import kratos from "@/public/kratos.jpg";
 import joker from "@/public/joker.jpg";
 
-
-
-// Define available characters with their system prompts and images
+// Character configs
 const characters = [
   {
     id: "cyberpunk",
@@ -74,7 +72,7 @@ export default function Chatpage() {
     return [];
   });
   const [activeChatId, setActiveChatId] = useState<string | null>(null);
-  const [activeCharacter, setActiveCharacter] = useState("cyberpunk");
+  const [activeCharacter, setActiveCharacter] = useState("jarvis");
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [mounted, setMounted] = useState(false);

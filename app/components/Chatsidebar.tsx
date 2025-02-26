@@ -1,4 +1,4 @@
-// Chatsidebar.tsx
+// Sidebar with chat history and character selection
 "use client";
 
 import { useState } from "react";
@@ -12,7 +12,7 @@ import joker from "@/public/joker.jpg";
 import darthVader from "@/public/darthVader.jpg";
 import kratos from "@/public/kratos.jpg";
 
-// Update the characters array with more details
+// Available AI characters
 const characters = [
   { 
     id: "cyberpunk", 
@@ -68,7 +68,7 @@ export default function ChatSidebar({
   onSelectChat,
   onNewChat,
   onDeleteChat,
-  activeCharacter = "cyberpunk", // Default character
+  activeCharacter = "jarvis",
   onSelectCharacter,
 }: ChatSidebarProps) {
   const [isOpen, setIsOpen] = useState(false);

@@ -93,6 +93,15 @@ export default function Chatpage() {
     e.preventDefault();
     if (!input.trim() || isLoading) return;
 
+    // Log the interaction
+    await fetch('/api/log', {
+      method: 'POST',
+      body: JSON.stringify({
+        character: activeCharacter,
+        message: input,
+      }),
+    });
+
     const userMessage: Message = { role: "user", content: input };
     let newChatId: string | null = activeChatId;
     let updatedChats: Chat[];

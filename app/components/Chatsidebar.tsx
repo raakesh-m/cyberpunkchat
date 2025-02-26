@@ -3,7 +3,7 @@
 
 import { useState } from "react";
 import { Chat } from "../types/chat";
-import { Trash2, Plus, Menu, X, User } from "lucide-react";
+import { Trash2, Plus, Menu, X } from "lucide-react";
 import Image from "next/image";
 import cyberpunk from "@/public/cyberpunk.jpg";
 import jarvis from "@/public/jarvis.jpg";

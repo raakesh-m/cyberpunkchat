@@ -76,6 +76,7 @@ export default function Chatpage() {
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [mounted, setMounted] = useState(false);
+  const [selectedModel, setSelectedModel] = useState("llama-3.1-8b-instant");
 
   useEffect(() => {
     setMounted(true);
@@ -145,7 +146,7 @@ export default function Chatpage() {
           ...(currentChat?.messages.slice(0, -1) || []),
           userMessage,
         ],
-        model: "mixtral-8x7b-32768",
+        model: selectedModel,
       });
 
       const assistantMessage: Message = {
@@ -223,6 +224,8 @@ export default function Chatpage() {
         onDeleteChat={handleDeleteChat}
         activeCharacter={activeCharacter}
         onSelectCharacter={handleSelectCharacter}
+        selectedModel={selectedModel}
+        onSelectModel={setSelectedModel}
       />
       <div className="flex-1 flex flex-col items-center justify-center p-4">
         <div className="chat-container w-full max-w-4xl rounded-xl p-4 sm:p-6 flex flex-col h-[85vh] md:h-[80vh] bg-gray-800 shadow-lg border border-purple-700/20">

@@ -60,6 +60,8 @@ interface ChatSidebarProps {
   onDeleteChat: (id: string) => void;
   activeCharacter: string;
   onSelectCharacter: (characterId: string) => void;
+  selectedModel: string;
+  onSelectModel: (model: string) => void;
 }
 
 export default function ChatSidebar({
@@ -70,9 +72,12 @@ export default function ChatSidebar({
   onDeleteChat,
   activeCharacter = "jarvis",
   onSelectCharacter,
+  selectedModel,
+  onSelectModel,
 }: ChatSidebarProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [showCharacters, setShowCharacters] = useState(false);
+  const [showModels, setShowModels] = useState(false);
 
   return (
     <>
@@ -222,6 +227,83 @@ export default function ChatSidebar({
           {chats.length === 0 && (
             <p className="text-gray-400 p-2 text-center">No chats yet. Start a new one!</p>
           )}
+        </div>
+
+        {/* Model Selector */}
+        <div className="p-4 border-t mt-auto border-gray-700">
+          <div className="relative">
+            <button 
+              onClick={() => setShowModels(!showModels)}
+              className="w-full flex items-center justify-between gap-2 bg-gradient-to-r from-gray-700 to-gray-800 text-white py-3 px-4 rounded-xl hover:from-gray-600 hover:to-gray-700 transition-all duration-200 border border-purple-500/20"
+            >
+              <div className="flex items-center gap-3">
+                <div className="text-left">
+                  <span className="block text-sm font-medium">
+                    {selectedModel === "llama-3.1-8b-instant" ? "Fastest" : "Strongest"}
+                  </span>
+                  <span className="block text-xs text-gray-400">Select Model</span>
+                </div>
+              </div>
+              <X 
+                size={16} 
+                className={`transform transition-transform duration-200 ${showModels ? 'rotate-180' : 'rotate-0'}`} 
+              />
+            </button>
+            
+            {/* Model List Dropdown */}
+            {showModels && (
+              <div className="absolute bottom-full left-0 right-0 mb-2 bg-gray-800 rounded-xl overflow-hidden border border-purple-500/20 shadow-xl z-50 transform transition-all duration-200 ease-out">
+                <div 
+                  onClick={() => {
+                    onSelectModel("llama-3.1-8b-instant");
+                    setShowModels(false);
+                  }}
+                  className={`flex items-center gap-3 p-3 cursor-pointer transition-colors duration-200 ${
+                    selectedModel === "llama-3.1-8b-instant" 
+                      ? 'bg-purple-600/20' 
+                      : 'hover:bg-gray-700'
+                  }`}
+                >
+                  <div className="flex-1">
+                    <span className="block font-medium text-white">
+                      Fastest: llama-3.1-8b-instant
+                    </span>
+                  </div>
+                  {selectedModel === "llama-3.1-8b-instant" && (
+                    <div className="text-purple-400">
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                        <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                      </svg>
+                    </div>
+                  )}
+                </div>
+                <div 
+                  onClick={() => {
+                    onSelectModel("llama-3.3-70b-versatile");
+                    setShowModels(false);
+                  }}
+                  className={`flex items-center gap-3 p-3 cursor-pointer transition-colors duration-200 ${
+                    selectedModel === "llama-3.3-70b-versatile" 
+                      ? 'bg-purple-600/20' 
+                      : 'hover:bg-gray-700'
+                  }`}
+                >
+                  <div className="flex-1">
+                    <span className="block font-medium text-white">
+                      Strongest: llama-3.3-70b-versatile
+                    </span>
+                  </div>
+                  {selectedModel === "llama-3.3-70b-versatile" && (
+                    <div className="text-purple-400">
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                        <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                      </svg>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
         </div>
       </div>
 

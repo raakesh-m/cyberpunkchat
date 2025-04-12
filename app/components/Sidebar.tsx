@@ -2,8 +2,6 @@ import { useState, useEffect } from 'react';
 import { 
   Search, 
   Plus, 
-  Trash2, 
-  MessageSquare, 
   ChevronDown, 
   Settings,
   User,
@@ -333,8 +331,8 @@ export const Sidebar = ({
               </button>
               
               {searchTerm && filteredChats.length === 0 ? (
-                <div className="text-center text-gray-400 text-sm p-4">
-                  No chats found matching "{searchTerm}"
+                <div className="mt-4 text-center p-4">
+                  <p className="text-sm text-gray-400">No chats found matching &quot;{searchTerm}&quot;</p>
                 </div>
               ) : (
                 filteredChats.map(chat => {

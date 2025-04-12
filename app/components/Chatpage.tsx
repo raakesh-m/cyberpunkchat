@@ -6,7 +6,7 @@ import Groq from "groq-sdk";
 import ChatSidebar from "./Chatsidebar";
 import { Message, Chat } from "../types/chat";
 import Image from "next/image";
-import { Send, Zap, Brain, ChevronDown } from "lucide-react";
+import { Send, Zap, Brain } from "lucide-react";
 import cyberpunk from "@/public/cyberpunk.jpg";
 import jarvis from "@/public/jarvis.jpg";
 import ultron from "@/public/ultron.jpg";
@@ -109,20 +109,22 @@ export default function Chatpage() {
     localStorage.setItem("chats", JSON.stringify(chats));
   }, [chats]);
   
-  useEffect(() => {
-    if (activeChat) {
-      scrollToBottom();
-    }
-  }, [chats, activeChatId]);
-
   const getActiveChat = () => chats.find((chat) => chat.id === activeChatId) || null;
   
   const getCurrentCharacter = () => characters.find(c => c.id === activeCharacter) || characters[0];
   
+  const activeChat = getActiveChat();
+  
+  useEffect(() => {
+    if (activeChat) {
+      scrollToBottom();
+    }
+  }, [chats, activeChatId, activeChat]);
+  
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
-      handleSubmit(e as any);
+      handleSubmit(e as React.FormEvent);
     }
   };
 
@@ -244,7 +246,6 @@ export default function Chatpage() {
     }
   };
 
-  const activeChat = getActiveChat();
   const character = getCurrentCharacter();
 
   if (!mounted) {

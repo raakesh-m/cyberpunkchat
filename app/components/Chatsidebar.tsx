@@ -3,7 +3,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import { Chat } from "../types/chat";
-import { Trash2, Plus, Menu, X, Zap, MessageCircle, Brain, Search, ChevronDown, LogOut, Settings, LayoutGrid } from "lucide-react";
+import { Trash2, Plus, Menu, X, Zap, MessageCircle, Brain, Search, ChevronDown, LayoutGrid } from "lucide-react";
 import Image from "next/image";
 import cyberpunk from "@/public/cyberpunk.jpg";
 import jarvis from "@/public/jarvis.jpg";
@@ -353,7 +353,7 @@ export default function ChatSidebar({
                 ) : searchTerm ? (
                   <div className="text-center py-10 px-2">
                     <Search size={36} className="mx-auto text-gray-600 mb-3" />
-                    <p className="text-gray-400 text-sm">No chats found matching "{searchTerm}"</p>
+                    <p className="text-gray-400 text-sm">No chats found matching &quot;{searchTerm}&quot;</p>
                     <button 
                       onClick={() => setSearchTerm("")}
                       className="mt-3 text-xs text-[hsla(var(--primary-hue),70%,60%,1)] hover:underline"

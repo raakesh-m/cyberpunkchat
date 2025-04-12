@@ -1,11 +1,12 @@
 // Main chat interface component
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Groq from "groq-sdk";
 import ChatSidebar from "./Chatsidebar";
 import { Message, Chat } from "../types/chat";
 import Image from "next/image";
+import { Send, Zap, Brain, ChevronDown } from "lucide-react";
 import cyberpunk from "@/public/cyberpunk.jpg";
 import jarvis from "@/public/jarvis.jpg";
 import ultron from "@/public/ultron.jpg";
@@ -51,11 +52,6 @@ const characters = [
     avatar: kratos, 
     systemPrompt: "You are Kratos, the Ghost of Sparta. You speak in a deep, commanding tone, with short, powerful sentences. Your responses are filled with war wisdom, Spartan discipline, and godly fury. You often refer to battle, honor, and the burdens of a warrior."
   }
-  
-  
-  
-  
-  
 ];
 
 const groq = new Groq({
@@ -77,6 +73,33 @@ export default function Chatpage() {
   const [isLoading, setIsLoading] = useState(false);
   const [mounted, setMounted] = useState(false);
   const [selectedModel, setSelectedModel] = useState("llama-3.1-8b-instant");
+  const [textareaHeight, setTextareaHeight] = useState("auto");
+  
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const chatContainerRef = useRef<HTMLDivElement>(null);
+  const textAreaRef = useRef<HTMLTextAreaElement>(null);
+  
+  // Adjust textarea height dynamically
+  const adjustTextareaHeight = () => {
+    if (textAreaRef.current) {
+      setTextareaHeight("auto");
+      const scrollHeight = textAreaRef.current.scrollHeight;
+      if (scrollHeight < 120) {
+        setTextareaHeight(`${scrollHeight}px`);
+      } else {
+        setTextareaHeight("120px");
+      }
+    }
+  };
+  
+  useEffect(() => {
+    adjustTextareaHeight();
+  }, [input]);
+  
+  // Scroll to the bottom when messages change
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  };
 
   useEffect(() => {
     setMounted(true);
@@ -85,10 +108,23 @@ export default function Chatpage() {
   useEffect(() => {
     localStorage.setItem("chats", JSON.stringify(chats));
   }, [chats]);
+  
+  useEffect(() => {
+    if (activeChat) {
+      scrollToBottom();
+    }
+  }, [chats, activeChatId]);
 
   const getActiveChat = () => chats.find((chat) => chat.id === activeChatId) || null;
   
   const getCurrentCharacter = () => characters.find(c => c.id === activeCharacter) || characters[0];
+  
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      handleSubmit(e as any);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -128,6 +164,7 @@ export default function Chatpage() {
     }
 
     setInput("");
+    setTextareaHeight("auto");
     setIsLoading(true);
 
     try {
@@ -215,7 +252,12 @@ export default function Chatpage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-900 text-white flex flex-col md:flex-row">
+    <div 
+      className="h-screen-safe w-full flex flex-col md:flex-row overflow-hidden character-theme-transition"
+      data-character={activeCharacter}
+    >
+      <div className="absolute inset-0 glow-effect" aria-hidden="true" />
+      
       <ChatSidebar
         chats={chats}
         activeChatId={activeChatId}
@@ -227,87 +269,238 @@ export default function Chatpage() {
         selectedModel={selectedModel}
         onSelectModel={setSelectedModel}
       />
-      <div className="flex-1 flex flex-col items-center justify-center p-4">
-        <div className="chat-container w-full max-w-4xl rounded-xl p-4 sm:p-6 flex flex-col h-[85vh] md:h-[80vh] bg-gray-800 shadow-lg border border-purple-700/20">
-          <div className="flex items-center gap-2 mb-4">
-            <Image
-              src={character.avatar}
-              alt={`${character.name} Avatar`}
-              width={120}
-              height={120}
-              className="rounded-full border-2 border-purple-500"
-            />
-            <h1 className="text-xl sm:text-2xl font-bold text-purple-300 tracking-wider">
-              {character.name.toUpperCase()}
-            </h1>
-          </div>
-
-          {/* Messages Display */}
-          <div className="flex-1 overflow-y-auto mb-4 space-y-3 sm:space-y-4 pr-2">
-            {activeChat ? (
-              activeChat.messages.map((message, index) => (
-                <div
-                  key={index}
-                  className={`flex ${
-                    message.role === "user" ? "justify-end" : "justify-start"
-                  }`}
-                >
-                  {message.role === "assistant" && (
-                    <div className="w-10 h-10 mr-2 relative">
-                      <Image
-                        src={character.avatar}
-                        alt={`${character.name} Avatar`}
-                        className="rounded-full border-2 border-purple-500"
-                        fill
-                        style={{ objectFit: "cover" }}
-                      />
+      
+      <main className="flex-1 relative flex flex-col h-screen-safe p-2 md:p-6 overflow-hidden">
+        <div className="absolute inset-0 z-0 pointer-events-none">
+          {/* Character-themed subtle background pattern */}
+          <div className="absolute inset-0 opacity-5 pointer-events-none" style={{
+            backgroundImage: `url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M11 18c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm48 25c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm-43-7c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm63 31c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM34 90c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm56-76c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM12 86c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm28-65c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm23-11c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-6 60c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm29 22c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zM32 63c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm57-13c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-9-21c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM60 91c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM35 41c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM12 60c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2z' fill='hsl(${character.id === 'cyberpunk' ? '330' : character.id === 'jarvis' ? '210' : character.id === 'ultron' ? '0' : character.id === 'joker' ? '285' : character.id === 'darth_vader' ? '0' : '0'}, 70%, 50%)' fill-opacity='1' fill-rule='evenodd'/%3E%3C/svg%3E")`,
+            backgroundSize: "60px 60px"
+          }}></div>
+        </div>
+        
+        <div className="z-10 flex flex-col h-full rounded-2xl backdrop-blur-sm overflow-hidden">
+          {/* Header with character info */}
+          <header className="flex items-center p-4 mb-2 bg-black/30 backdrop-blur-md rounded-xl shadow-lg">
+            <div className="relative">
+              <div className="character-avatar w-14 h-14 md:w-16 md:h-16 overflow-hidden rounded-full ring-[0.5px] ring-offset-4 ring-offset-black/30 ring-[hsl(var(--primary-hue),70%,50%)]">
+                <Image
+                  src={character.avatar}
+                  alt={`${character.name} Avatar`}
+                  className="object-cover transition-transform duration-300"
+                  fill
+                  priority
+                />
+              </div>
+              <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-[hsl(var(--primary-hue),70%,50%,0.8)] rounded-full flex items-center justify-center shadow-lg">
+                <div className="indicator"></div>
+              </div>
+            </div>
+            
+            <div className="ml-4 flex-1">
+              <h1 className="font-bold tracking-wide text-xl md:text-2xl bg-clip-text text-transparent bg-gradient-to-r from-white to-gray-300">
+                {character.name}
+              </h1>
+              <div className="flex items-center mt-1 text-xs text-gray-300">
+                <span className="flex items-center mr-4">
+                  {selectedModel === "llama-3.1-8b-instant" ? (
+                    <>
+                      <Zap size={14} className="mr-1 text-yellow-400" />
+                      <span>Fast mode</span>
+                    </>
+                  ) : (
+                    <>
+                      <Brain size={14} className="mr-1 text-blue-400" />
+                      <span>Smart mode</span>
+                    </>
+                  )}
+                </span>
+                <span className="pill">
+                  <span className="indicator mr-1"></span>
+                  Online
+                </span>
+              </div>
+            </div>
+          </header>
+          
+          {/* Chat container */}
+          <div 
+            ref={chatContainerRef}
+            className="chat-container flex-1 flex flex-col overflow-hidden rounded-xl"
+          >
+            {/* Messages */}
+            <div className="flex-1 overflow-y-auto px-2 md:px-4 py-4 space-y-4 custom-scrollbar">
+              {activeChat ? (
+                <>
+                  {activeChat.messages.map((message, index) => (
+                    <div
+                      key={index}
+                      className={`flex items-end ${
+                        message.role === "user" ? "justify-end" : "justify-start"
+                      } ${index === 0 ? "animate-fadeIn" : "message-enter"}`}
+                    >
+                      {message.role === "assistant" && (
+                        <div className="flex-shrink-0 mr-3">
+                          <div className="relative w-8 h-8 md:w-10 md:h-10">
+                            <Image
+                              src={character.avatar}
+                              alt={`${character.name} Avatar`}
+                              className="rounded-full shadow-lg"
+                              fill
+                              sizes="40px"
+                            />
+                            <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent rounded-full"></div>
+                          </div>
+                        </div>
+                      )}
+                      
+                      <div 
+                        className={`message-bubble rounded-2xl px-4 py-3 max-w-[75%] md:max-w-[65%] shadow-md ${
+                          message.role === "user" 
+                            ? "user rounded-tr-sm ml-12" 
+                            : "assistant rounded-tl-sm"
+                        }`}
+                      >
+                        <div className="whitespace-pre-wrap text-sm md:text-base">
+                          {message.content}
+                        </div>
+                        <div className="mt-1 text-[10px] text-gray-400 opacity-80 text-right">
+                          {new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                  
+                  {isLoading && (
+                    <div className="flex items-end justify-start animate-fadeIn">
+                      <div className="flex-shrink-0 mr-3">
+                        <div className="relative w-8 h-8 md:w-10 md:h-10">
+                          <Image
+                            src={character.avatar}
+                            alt={`${character.name} Avatar`}
+                            className="rounded-full shadow-lg"
+                            fill
+                            sizes="40px"
+                          />
+                        </div>
+                      </div>
+                      
+                      <div className="message-bubble assistant rounded-2xl rounded-tl-sm px-4 py-3 shadow-md animate-slideIn">
+                        <div className="typing-animation">
+                          <span className="typing-dot"></span>
+                          <span className="typing-dot"></span>
+                          <span className="typing-dot"></span>
+                        </div>
+                      </div>
                     </div>
                   )}
-                  <div
-                    className={`message-bubble max-w-[85%] sm:max-w-[70%] p-3 rounded-xl transition-all duration-200 hover:shadow-md ${
-                      message.role === "user"
-                        ? "bg-gray-100 text-gray-900 border-gray-300"
-                        : "bg-gradient-to-r from-purple-500 to-purple-700 text-white border-purple-600"
-                    } border border-opacity-30`}
-                  >
-                    {message.content}
+                  
+                  <div ref={messagesEndRef} /> {/* Invisible element to scroll to */}
+                </>
+              ) : (
+                <div className="h-full flex flex-col items-center justify-center text-center p-6 animate-fadeIn">
+                  <div className="relative w-28 h-28 mb-6 opacity-85 drop-shadow-2xl">
+                    <Image
+                      src={character.avatar}
+                      alt={character.name}
+                      className="rounded-full object-cover"
+                      fill
+                      sizes="(max-width: 768px) 80px, 112px"
+                    />
+                    <div className="absolute inset-0 rounded-full bg-gradient-to-t from-black/40 to-transparent"></div>
+                    <div className="absolute inset-0 rounded-full animate-pulse bg-gradient-to-r from-[hsla(var(--primary-hue),70%,50%,0)] via-[hsla(var(--primary-hue),70%,50%,0.3)] to-[hsla(var(--primary-hue),70%,50%,0)] bg-[length:200%_100%]" style={{ animation: "shimmer 2s infinite" }}></div>
+                  </div>
+                  <h2 className="text-2xl font-semibold mb-2 text-white">Chat with {character.name}</h2>
+                  <p className="text-gray-400 max-w-md mb-8">
+                    Start a conversation by typing a message below, or select an existing chat from the sidebar.
+                  </p>
+                  <div className="flex items-center justify-center gap-2 text-sm text-gray-400">
+                    <span className="pill">
+                      {selectedModel === "llama-3.1-8b-instant" ? (
+                        <>
+                          <Zap size={12} className="mr-1 text-yellow-400" />
+                          Fast Mode
+                        </>
+                      ) : (
+                        <>
+                          <Brain size={12} className="mr-1 text-blue-400" />
+                          Smart Mode
+                        </>
+                      )}
+                    </span>
                   </div>
                 </div>
-              ))
-            ) : (
-              <div className="text-gray-400 text-center mt-20">
-                Select a chat with {character.name}
+              )}
+            </div>
+            
+            {/* Input area */}
+            <div className="input-container p-2 md:p-4 relative z-10">
+              <form 
+                onSubmit={handleSubmit}
+                className="gradient-border relative flex items-center bg-black/30 rounded-xl backdrop-blur-lg overflow-hidden shadow-lg"
+              >
+                <textarea
+                  ref={textAreaRef}
+                  value={input}
+                  onChange={(e) => setInput(e.target.value)}
+                  onKeyDown={handleKeyDown}
+                  placeholder={`Message ${character.name}...`}
+                  style={{ height: textareaHeight }}
+                  className="input-field flex-1 py-3.5 pl-4 pr-12 rounded-l-xl rounded-r-none text-sm md:text-base bg-transparent text-white focus:outline-none resize-none min-h-[44px] z-10"
+                  disabled={isLoading}
+                />
+                <button
+                  type="submit"
+                  disabled={isLoading || !input.trim()}
+                  className="send-button h-11 w-11 rounded-xl flex items-center justify-center text-white absolute right-1.5 disabled:opacity-50 disabled:cursor-not-allowed z-10"
+                  aria-label="Send message"
+                >
+                  <Send size={18} className="text-white" />
+                </button>
+              </form>
+              
+              <div className="text-xs text-center mt-2 text-gray-500">
+                {selectedModel === "llama-3.1-8b-instant" ? (
+                  <span className="flex items-center justify-center">
+                    <Zap size={10} className="mr-1 text-yellow-400" />
+                    Using Fast Mode | Press Enter to send, Shift+Enter for a new line
+                  </span>
+                ) : (
+                  <span className="flex items-center justify-center">
+                    <Brain size={10} className="mr-1 text-blue-400" />
+                    Using Smart Mode | Press Enter to send, Shift+Enter for a new line
+                  </span>
+                )}
               </div>
-            )}
-            {isLoading && activeChat && (
-              <div className="flex justify-start">
-                <div className="bg-gray-700 p-3 rounded-xl text-gray-400 animate-pulse">
-                  Processing...
-                </div>
-              </div>
-            )}
+            </div>
           </div>
-
-          {/* Input Form */}
-          <form onSubmit={handleSubmit} className="flex gap-2">
-            <input
-              type="text"
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              placeholder={`Message ${character.name}...`}
-              className="flex-1 p-2 sm:p-3 bg-gray-700 border border-gray-600 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 transition-all duration-200"
-              disabled={isLoading}
-            />
-            <button
-              type="submit"
-              disabled={isLoading}
-              className="bg-gradient-to-r from-purple-500 to-purple-700 text-white px-4 sm:px-6 py-2 sm:py-3 rounded-xl hover:from-purple-600 hover:to-purple-800 disabled:from-purple-400 disabled:to-purple-600 transition-all duration-200"
-            >
-              Send
-            </button>
-          </form>
         </div>
-      </div>
+      </main>
+      
+      <style jsx>{`
+        @keyframes shimmer {
+          0% { background-position: 200% 0; }
+          100% { background-position: -200% 0; }
+        }
+        
+        @keyframes fadeIn {
+          from { opacity: 0; }
+          to { opacity: 1; }
+        }
+        
+        @keyframes slideIn {
+          from { transform: translateY(10px); opacity: 0; }
+          to { transform: translateY(0); opacity: 1; }
+        }
+        
+        .animate-fadeIn {
+          animation: fadeIn 0.5s ease-out forwards;
+        }
+        
+        .animate-slideIn {
+          animation: slideIn 0.3s ease-out forwards;
+        }
+      `}</style>
     </div>
   );
 }

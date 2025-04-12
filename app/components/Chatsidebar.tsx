@@ -151,7 +151,7 @@ export default function ChatSidebar({
               </div>
               <div>
                 <h1 className="font-bold text-lg text-white">AI Companion</h1>
-                <p className="text-xs text-gray-300 opacity-80">Powered by Groq</p>
+                <p className="text-xs text-gray-300 opacity-80">Powered by LLMs</p>
               </div>
             </div>
           </header>

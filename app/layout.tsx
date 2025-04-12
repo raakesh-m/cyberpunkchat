@@ -18,15 +18,15 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "AI Character Chat - Powered by Groq LLMs",
-  description: "Chat with your favorite AI characters using powerful Groq language models.",
-  keywords: "AI chat, AI characters, Groq, LLM, J.A.R.V.I.S., Ultron, Joker, Darth Vader, Kratos, Cyberpunk",
+  title: "AI Character Chat - Powered by LLMs",
+  description: "Chat with your favorite AI characters using powerful Large language models.",
+  keywords: "AI chat, AI characters, LLM, J.A.R.V.I.S., Ultron, Joker, Darth Vader, Kratos, Cyberpunk",
   viewport: "width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no",
   themeColor: "#1a1a2e",
   authors: [{ name: "AI Character Chat" }],
   openGraph: {
-    title: "AI Character Chat - Powered by Groq",
-    description: "Chat with your favorite AI characters using powerful Groq language models.",
+    title: "AI Character Chat - Powered by LLMs",
+    description: "Chat with your favorite AI characters using powerful Large language models.",
     type: "website",
     locale: "en_US",
   },
